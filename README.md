@@ -1,8 +1,9 @@
 # FINCTRL – finanse osobiste (Android)
-
 Kotlin · Jetpack Compose (Material 3) · MVVM · Room · Coroutines/Flow · Navigation Compose · Firebase (Auth + Firestore).
+**Model danych:** Room jako źródło prawdy. Firebase służy do logowania oraz kopii zapasowej/synchronizacji.
 
-**Model danych:** Room to źródło prawdy i działa offline. Firebase służy do logowania oraz kopii zapasowej/synchronizacji.
+Rozszerzona dokumentacja (już kompletna) została zawarta w gpliku pdf w głównym folderze projektu. Plik readme stanowi skróconą wersję dokumentacji (poglądową)
+
 
 ## Uruchomienie
 
@@ -18,7 +19,6 @@ Kotlin · Jetpack Compose (Material 3) · MVVM · Room · Coroutines/Flow · Nav
 
 ### Build
 W Android Studio: Gradle Sync, a następnie uruchom konfigurację **app** na urządzeniu lub emulatorze.
-
 Z terminala (na Windowsie `gradlew.bat` zamiast `./gradlew`):
 
 | Polecenie | Efekt |
@@ -26,6 +26,9 @@ Z terminala (na Windowsie `gradlew.bat` zamiast `./gradlew`):
 | `./gradlew assembleDebug` | buduje APK: `app/build/outputs/apk/debug/app-debug.apk` |
 | `./gradlew installDebug` | buduje i instaluje aplikację na podłączonym urządzeniu |
 | `./gradlew clean` | usuwa wyniki poprzednich buildów |
+
+W projekcie znjduje się gotowy plik apk do instalacji na urządzeniu android (emulatorze lub fizycznym)
+
 
 ### Testy
 | Polecenie | Zakres | Wymaga urządzenia |
@@ -59,7 +62,15 @@ Raporty HTML:
 Diagramy (architektura, przypadki użycia, baza danych): [docs/diagrams.md](docs/diagrams.md).
 
 ## Ekrany
-Logowanie/odblokowanie · Pulpit · Transakcje (filtr + wyszukiwanie) · Dodawanie/edycja transakcji · Kategorie · Budżety · Raporty (wykres kołowy) · Waluty (kursy Frankfurter/ECB) · Ustawienia (PIN, biometria, CSV, kopia zapasowa).
+- Logowanie/odblokowanie 
+- Pulpit
+- Transakcje (filtr + wyszukiwanie)
+- Dodawanie/edycja transakcji
+- Kategorie
+- Budżety 
+- Raporty (wykres kołowy)
+- Waluty (kursy Frankfurter/ECB)
+- Ustawienia (PIN, biometria, CSV, kopia zapasowa).
 
 ## Bezpieczeństwo
 - PIN przechowywany wyłącznie jako SHA-256(sól + PIN) w EncryptedSharedPreferences (klucz w Android Keystore).
@@ -70,3 +81,4 @@ Logowanie/odblokowanie · Pulpit · Transakcje (filtr + wyszukiwanie) · Dodawan
 
 ## Ograniczenia
 Teksty UI są wpisane na stałe po polsku (do przeniesienia do `strings.xml`). Waluta transakcji jest stała (PLN).
+Możliwość ewentruzlnego rozbudowania zmiennych walutowych i językowych w przyszłości. 
