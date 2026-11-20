@@ -60,14 +60,7 @@ class RoomFinanceRepository(private val db: AppDatabase) : FinanceRepository {
 
     override suspend fun seedDefaultsIfEmpty() {
         if (dao.categoryCount() > 0) return
-        listOf(
-            CategoryEntity(name = "Wynagrodzenie", type = TxType.INCOME, colorHex = "#2E7D32"),
-            CategoryEntity(name = "Inne przychody", type = TxType.INCOME, colorHex = "#00897B"),
-            CategoryEntity(name = "Jedzenie", type = TxType.EXPENSE, colorHex = "#EF6C00"),
-            CategoryEntity(name = "Transport", type = TxType.EXPENSE, colorHex = "#1565C0"),
-            CategoryEntity(name = "Mieszkanie", type = TxType.EXPENSE, colorHex = "#6A1B9A"),
-            CategoryEntity(name = "Rozrywka", type = TxType.EXPENSE, colorHex = "#C2185B"),
-        ).forEach { dao.upsertCategory(it) }
+        dao.upsertCategories(DEFAULT_CATEGORIES)
     }
 
     override suspend fun snapshot() = db.withTransaction {
@@ -79,5 +72,16 @@ class RoomFinanceRepository(private val db: AppDatabase) : FinanceRepository {
         dao.upsertCategories(snapshot.categories)
         dao.upsertTransactions(snapshot.transactions)
         dao.upsertBudgets(snapshot.budgets)
+    }
+
+    private companion object {
+        val DEFAULT_CATEGORIES = listOf(
+            CategoryEntity(name = "Wynagrodzenie", type = TxType.INCOME, colorHex = "#2E7D32"),
+            CategoryEntity(name = "Inne przychody", type = TxType.INCOME, colorHex = "#00897B"),
+            CategoryEntity(name = "Jedzenie", type = TxType.EXPENSE, colorHex = "#EF6C00"),
+            CategoryEntity(name = "Transport", type = TxType.EXPENSE, colorHex = "#1565C0"),
+            CategoryEntity(name = "Mieszkanie", type = TxType.EXPENSE, colorHex = "#6A1B9A"),
+            CategoryEntity(name = "Rozrywka", type = TxType.EXPENSE, colorHex = "#C2185B"),
+        )
     }
 }

@@ -11,31 +11,31 @@ import kotlinx.coroutines.tasks.await
 
 class CloudSync(private val firestore: FirebaseFirestore, private val auth: AuthRepository) {
 
-    private fun userRoot() = firestore.collection("users").document(
+    private fun userRoot() = firestore.collection(USERS).document(
         auth.uid ?: throw ValidationException("Kopia zapasowa wymaga zalogowanego konta.")
     )
 
     suspend fun backup(s: Snapshot) {
         val root = userRoot()
-        replace(root.collection("categories"), s.categories.map { it.id.toString() to it.toMap() })
-        replace(root.collection("transactions"), s.transactions.map { it.id.toString() to it.toMap() })
-        replace(root.collection("budgets"), s.budgets.map { it.id.toString() to it.toMap() })
+        replace(root.collection(CATEGORIES), s.categories.map { it.id.toString() to it.toMap() })
+        replace(root.collection(TRANSACTIONS), s.transactions.map { it.id.toString() to it.toMap() })
+        replace(root.collection(BUDGETS), s.budgets.map { it.id.toString() to it.toMap() })
     }
 
     suspend fun restore(): Snapshot {
         val root = userRoot()
-        val cats = root.collection("categories").get().await().documents.mapNotNull { d ->
+        val cats = root.collection(CATEGORIES).get().await().documents.mapNotNull { d ->
             val m = d.data ?: return@mapNotNull null
             CategoryEntity(d.id.toLong(), m.str("name"), TxType.valueOf(m.str("type")), m.str("colorHex"))
         }
-        val txs = root.collection("transactions").get().await().documents.mapNotNull { d ->
+        val txs = root.collection(TRANSACTIONS).get().await().documents.mapNotNull { d ->
             val m = d.data ?: return@mapNotNull null
             TransactionEntity(
                 d.id.toLong(), m.lng("amount"), TxType.valueOf(m.str("type")),
                 (m["categoryId"] as? Number)?.toLong(), m.str("note"), m.lng("date"), m.str("currency"),
             )
         }
-        val buds = root.collection("budgets").get().await().documents.mapNotNull { d ->
+        val buds = root.collection(BUDGETS).get().await().documents.mapNotNull { d ->
             val m = d.data ?: return@mapNotNull null
             BudgetEntity(d.id.toLong(), m.lng("categoryId"), m.str("month"), m.lng("limitAmount"))
         }
@@ -43,10 +43,10 @@ class CloudSync(private val firestore: FirebaseFirestore, private val auth: Auth
     }
 
     private suspend fun replace(col: CollectionReference, docs: List<Pair<String, Map<String, Any?>>>) {
-        col.get().await().documents.chunked(400).forEach { chunk ->
+        col.get().await().documents.chunked(BATCH_LIMIT).forEach { chunk ->
             firestore.batch().apply { chunk.forEach { delete(it.reference) } }.commit().await()
         }
-        docs.chunked(400).forEach { chunk ->
+        docs.chunked(BATCH_LIMIT).forEach { chunk ->
             firestore.batch().apply { chunk.forEach { (id, data) -> set(col.document(id), data) } }.commit().await()
         }
     }
@@ -60,4 +60,12 @@ class CloudSync(private val firestore: FirebaseFirestore, private val auth: Auth
         "note" to note, "date" to date, "currency" to currency,
     )
     private fun BudgetEntity.toMap() = mapOf("categoryId" to categoryId, "month" to month, "limitAmount" to limitAmount)
+
+    private companion object {
+        const val USERS = "users"
+        const val CATEGORIES = "categories"
+        const val TRANSACTIONS = "transactions"
+        const val BUDGETS = "budgets"
+        const val BATCH_LIMIT = 400
+    }
 }

@@ -13,10 +13,12 @@ class FinctrlApp : Application() {
     lateinit var container: AppContainer
         private set
 
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
         ProcessLifecycleOwner.get().lifecycle.addObserver(AutoLockObserver(container.securityStore))
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { container.repository.seedDefaultsIfEmpty() }
+        appScope.launch { container.repository.seedDefaultsIfEmpty() }
     }
 }

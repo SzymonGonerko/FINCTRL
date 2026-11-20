@@ -13,16 +13,21 @@ class CurrencyRepository {
     suspend fun rates(forceRefresh: Boolean = false): Map<String, Double> {
         cache?.takeIf { !forceRefresh }?.let { return it }
         return withContext(Dispatchers.IO) {
-            val conn = URL("https://api.frankfurter.app/latest?from=PLN").openConnection() as HttpURLConnection
+            val conn = URL(RATES_URL).openConnection() as HttpURLConnection
             try {
-                conn.connectTimeout = 8_000
-                conn.readTimeout = 8_000
-                if (conn.responseCode != 200) throw IOException("Serwer kursów zwrócił kod ${conn.responseCode}")
+                conn.connectTimeout = TIMEOUT_MS
+                conn.readTimeout = TIMEOUT_MS
+                if (conn.responseCode != HttpURLConnection.HTTP_OK) throw IOException("Serwer kursów zwrócił kod ${conn.responseCode}")
                 val rates = JSONObject(conn.inputStream.bufferedReader().readText()).getJSONObject("rates")
                 rates.keys().asSequence().associateWith { rates.getDouble(it) }.toSortedMap().also { cache = it }
             } finally {
                 conn.disconnect()
             }
         }
+    }
+
+    private companion object {
+        const val RATES_URL = "https://api.frankfurter.app/latest?from=PLN"
+        const val TIMEOUT_MS = 8_000
     }
 }

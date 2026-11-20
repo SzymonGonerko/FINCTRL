@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 class SecurityStore(context: Context) {
     private val prefs: SharedPreferences = EncryptedSharedPreferences.create(
         context,
-        "finctrl_secure_prefs",
+        PREFS_NAME,
         MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
@@ -61,7 +61,10 @@ class SecurityStore(context: Context) {
         MessageDigest.getInstance("SHA-256").digest(salt + pin.toByteArray())
 
     private companion object {
-        const val KEY_SALT = "pin_salt"; const val KEY_HASH = "pin_hash"
-        const val KEY_BIO = "bio_enabled"; const val KEY_LOCAL = "local_mode"
+        const val PREFS_NAME = "finctrl_secure_prefs"
+        const val KEY_SALT = "pin_salt"
+        const val KEY_HASH = "pin_hash"
+        const val KEY_BIO = "bio_enabled"
+        const val KEY_LOCAL = "local_mode"
     }
 }

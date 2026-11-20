@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,7 +32,24 @@ import java.util.Locale
 fun parseColor(hex: String?, fallback: Color = Color(0xFF607D8B)): Color =
     runCatching { Color(android.graphics.Color.parseColor(hex)) }.getOrDefault(fallback)
 
-fun YearMonth.pretty(): String = format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("pl")))
+private const val MILLIS_PER_DAY = 86_400_000L
+private val MONTH_FORMAT = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("pl"))
+
+private val NavBarBackground = Color(0xFF18181B)
+private val NavBarIndicator = Color(0xFF3F3F46)
+private val NavBarUnselected = Color(0xFFA1A1AA)
+
+private data class NavItem(val route: String, val label: String, val icon: ImageVector)
+
+private val NAV_ITEMS = listOf(
+    NavItem(Routes.DASHBOARD, "Pulpit", Icons.Default.Home),
+    NavItem(Routes.TRANSACTIONS, "Transakcje", Icons.AutoMirrored.Filled.ReceiptLong),
+    NavItem(Routes.CATEGORIES, "Kategorie", Icons.Default.Category),
+    NavItem(Routes.BUDGETS, "Budżety", Icons.Default.AccountBalanceWallet),
+    NavItem(Routes.REPORTS, "Raporty", Icons.Default.PieChart),
+)
+
+fun YearMonth.pretty(): String = format(MONTH_FORMAT)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,18 +108,11 @@ fun AppBottomBar(
     onNavigate: (String) -> Unit,
 ) {
     NavigationBar(
-        containerColor = Color(0xFF18181B),
+        containerColor = NavBarBackground,
         contentColor = Color.White,
         tonalElevation = 8.dp,
     ) {
-        val items = listOf(
-            Triple(Routes.DASHBOARD, "Pulpit", Icons.Default.Home),
-            Triple(Routes.TRANSACTIONS, "Transakcje", Icons.AutoMirrored.Filled.ReceiptLong),
-            Triple(Routes.CATEGORIES, "Kategorie", Icons.Default.Category),
-            Triple(Routes.BUDGETS, "Budżety", Icons.Default.AccountBalanceWallet),
-            Triple(Routes.REPORTS, "Raporty", Icons.Default.PieChart),
-        )
-        items.forEach { (route, label, icon) ->
+        NAV_ITEMS.forEach { (route, label, icon) ->
             val selected = currentRoute == route
             NavigationBarItem(
                 selected = selected,
@@ -111,9 +122,9 @@ fun AppBottomBar(
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.White,
                     selectedTextColor = Color.White,
-                    indicatorColor = Color(0xFF3F3F46),
-                    unselectedIconColor = Color(0xFFA1A1AA),
-                    unselectedTextColor = Color(0xFFA1A1AA),
+                    indicatorColor = NavBarIndicator,
+                    unselectedIconColor = NavBarUnselected,
+                    unselectedTextColor = NavBarUnselected,
                 )
             )
         }
@@ -163,12 +174,12 @@ fun DatePickerField(epochDay: Long, onChange: (Long) -> Unit) {
     var show by rememberSaveable { mutableStateOf(false) }
     OutlinedButton(onClick = { show = true }) { Text(LocalDate.ofEpochDay(epochDay).toString()) }
     if (show) {
-        val state = rememberDatePickerState(initialSelectedDateMillis = epochDay * 86_400_000L)
+        val state = rememberDatePickerState(initialSelectedDateMillis = epochDay * MILLIS_PER_DAY)
         DatePickerDialog(
             onDismissRequest = { show = false },
             confirmButton = {
                 TextButton(onClick = {
-                    state.selectedDateMillis?.let { onChange(Math.floorDiv(it, 86_400_000L)) }
+                    state.selectedDateMillis?.let { onChange(Math.floorDiv(it, MILLIS_PER_DAY)) }
                     show = false
                 }) { Text("OK") }
             },

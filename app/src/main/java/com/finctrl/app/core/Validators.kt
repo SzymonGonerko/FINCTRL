@@ -6,6 +6,10 @@ import java.util.Locale
 
 object Validators {
     private val MAX_AMOUNT = BigDecimal("1000000000")
+    private const val MAX_NAME_LENGTH = 40
+    private const val MIN_PASSWORD_LENGTH = 6
+    private val PIN_REGEX = Regex("\\d{4,6}")
+    private val EMAIL_REGEX = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
 
     fun parseAmount(raw: String): Long {
         val value = raw.trim().replace(',', '.').toBigDecimalOrNull()
@@ -21,30 +25,32 @@ object Validators {
     fun requireName(raw: String, field: String = "Nazwa"): String {
         val v = raw.trim()
         if (v.isEmpty()) throw ValidationException("$field nie może być pusta.")
-        if (v.length > 40) throw ValidationException("$field może mieć maks. 40 znaków.")
+        if (v.length > MAX_NAME_LENGTH) throw ValidationException("$field może mieć maks. $MAX_NAME_LENGTH znaków.")
         return v
     }
 
     fun validatePin(pin: String): String {
-        if (!pin.matches(Regex("\\d{4,6}"))) throw ValidationException("PIN musi mieć 4–6 cyfr.")
+        if (!pin.matches(PIN_REGEX)) throw ValidationException("PIN musi mieć 4–6 cyfr.")
         return pin
     }
 
     fun validateEmail(raw: String): String {
         val v = raw.trim()
-        if (!v.matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))) throw ValidationException("Podaj poprawny adres e-mail.")
+        if (!v.matches(EMAIL_REGEX)) throw ValidationException("Podaj poprawny adres e-mail.")
         return v
     }
 
     fun validatePassword(raw: String): String {
-        if (raw.length < 6) throw ValidationException("Hasło musi mieć min. 6 znaków.")
+        if (raw.length < MIN_PASSWORD_LENGTH) throw ValidationException("Hasło musi mieć min. $MIN_PASSWORD_LENGTH znaków.")
         return raw
     }
 }
 
 object Money {
+    private val POLISH = Locale("pl", "PL")
+
     fun format(minor: Long, currency: String = "PLN"): String {
-        val nf = NumberFormat.getNumberInstance(Locale("pl", "PL")).apply {
+        val nf = NumberFormat.getNumberInstance(POLISH).apply {
             minimumFractionDigits = 2; maximumFractionDigits = 2
         }
         return "${nf.format(minor / 100.0)} $currency"
